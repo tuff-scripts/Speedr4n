@@ -46,7 +46,7 @@ local function new(className, parent, properties)
 end
 local function hash()
   local hash = {} local chars = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789!@#$%&()_=/" local len = #chars
-  for i = 1, 16 do local idx = math.random(1, 79) hash[i] = chars:sub(idx, idx) end return table.concat(hash)
+  for i = 1, 16 do local idx = math.random(1, 62) hash[i] = chars:sub(idx, idx) end return table.concat(hash)
 end
 local espD = {} local espHums = {}
 local function esp(p, n, c, t)
@@ -165,12 +165,12 @@ local ndp = false local ndr = false local ndt = 0
 
 local unlockPrompts = {["UnlockPrompt"] = true, ["SkullPrompt"] = true, ["LockPrompt"] = true, ["ThingToEnable"] = true, ["FusesPrompt"] = true, ["ManualOpenPrompt"] = true, ["FusesPrompt"] = true}
 local lockers = {["Toolbox_Locked"] = true, ["ChestBoxLocked"] = true, ["Chest_Vine"] = true, ["CuttableVines"] = true, ["Locker_Small_Locked"] = true}
-local items = {["Lighter"] = "Lighter", ["Flashlight"] = "Flashlight", ["Lockpick"] = "Lockpicks", ["Vitamins"] = "Vitamins", ["Bandage"] = "Bandage", ["Battery"] = "Battery", ["StarVial"] = "Starlight Vial", ["StarBottle"] = "Bottle of Starlight", ["StarJug"] = "Starlight Jug", ["Shakelight"] = "Shake-light", ["Straplight"] = "Strap-light", ["Bulklight"] = "Bulk-light", ["Candle"] = "Candle", ["Crucifix"] = "Crucifix", ["CrucifixWall"] = "Crucifix", ["Glowsticks"] = "Glowstick", ["SkeletonKey"] = "Skeleton Key", ["Candy"] = "Candy", ["ShieldMini"] = "Mini Shield Potion", ["ShieldBig"] = "Big Shield Potion", ["BandagePack"] = "Bandage Pack", ["BatteryPack"] = "Battery Pack", ["Smoothie"] = "Smoothie", ["RiftCandle"] = "Moonlight Candle", ["LaserPointer"] = "Laser Pointer", ["HolyGrenade"] = "Holy Hand Grenade", ["Shears"] = "Shears", ["Cheese"] = "Cheese", ["Bread"] = "Slice of Bread", ["AlarmClock"] = "Alarm Clock", ["RiftSmoothie"] = "Moonlight Float", ["GweenSoda"] = "Gween Soda", ["GlitchCube"] = "Glitch Fragment", ["Scanner"] = "NVCS-3000", ["Bomb"] = "Bomb", ["Knockbomb"] = "Knockbomb", ["Nanner"] = "Banana", ["BigBomb"] = "Big Bomb", ["ShakeBox"] = "Cardboard Box", ["GoldGun"] = "Gold Blaster", ["StopSign"] = "A-90 Sign", ["TipJar"] = "Tip Jar", ["Lantern"] = "Lantern", ["IronKey"] = "Crypt Key", ["KeyIron"] = "Crypt Key", ["IronKeyForCrypt"] = "Crypt Key", ["LotusPetal"] = "Lotus Petal", ["LotusHolder"] = "Lotus Petal", ["Compass"] = "Compass", ["LotusPetalPickup"] = "Lotus Petal", ["LanternLitItem"] = "Lantern", ["Multitool"] = "Multitool", ["RiftJar"] = "Rift Jar", ["AloeVera"] = "Aloe Vera", ["Donut"] = "D'oh nut", ["Lotus"] = "Lotus", ["BoxingGloves"] = "Boxing Gloves", ["StardustPickup"] = "Stardust", ["PaperPlane"] = "Paper Plane", ["FihFlakes"] = "Fih Food", ["Leftovers"] = "Lunchbox", ["Pizza"] = "Pizza Slice", ["WaterCup"] = "Water Cup", ["HoneyPot"] = "Honeypot", ["Briefcase"] = "Briefcase"}
+local items = {["Lighter"] = "Lighter", ["Flashlight"] = "Flashlight", ["Lockpick"] = "Lockpicks", ["Vitamins"] = "Vitamins", ["Bandage"] = "Bandage", ["Battery"] = "Battery", ["StarVial"] = "Starlight Vial", ["StarBottle"] = "Bottle of Starlight", ["StarJug"] = "Starlight Jug", ["Shakelight"] = "Shake-light", ["Straplight"] = "Strap-light", ["Bulklight"] = "Bulk-light", ["Candle"] = "Candle", ["Crucifix"] = "Crucifix", ["CrucifixWall"] = "Crucifix", ["Glowsticks"] = "Glowstick", ["SkeletonKey"] = "Skeleton Key", ["Candy"] = "Candy", ["ShieldMini"] = "Mini Shield Potion", ["ShieldBig"] = "Big Shield Potion", ["BandagePack"] = "Bandage Pack", ["BatteryPack"] = "Battery Pack", ["Smoothie"] = "Smoothie", ["RiftCandle"] = "Moonlight Candle", ["LaserPointer"] = "Laser Pointer", ["HolyGrenade"] = "Holy Hand Grenade", ["Shears"] = "Shears", ["Cheese"] = "Cheese", ["Bread"] = "Slice of Bread", ["AlarmClock"] = "Alarm Clock", ["RiftSmoothie"] = "Moonlight Float", ["GweenSoda"] = "Gween Soda", ["GlitchCube"] = "Glitch Fragment", ["Scanner"] = "NVCS-3000", ["Bomb"] = "Bomb", ["Knockbomb"] = "Knockbomb", ["Nanner"] = "Banana", ["BigBomb"] = "Big Bomb", ["ShakeBox"] = "Cardboard Box", ["GoldGun"] = "Gold Blaster", ["StopSign"] = "Rans0m Sign", ["TipJar"] = "Tip Jar", ["Lantern"] = "Lantern", ["IronKey"] = "Crypt Key", ["KeyIron"] = "Crypt Key", ["IronKeyForCrypt"] = "Crypt Key", ["LotusPetal"] = "Lotus Petal", ["LotusHolder"] = "Lotus Petal", ["Compass"] = "Compass", ["LotusPetalPickup"] = "Lotus Petal", ["LanternLitItem"] = "Lantern", ["Multitool"] = "Multitool", ["RiftJar"] = "Rift Jar", ["AloeVera"] = "Aloe Vera", ["Donut"] = "D'oh nut", ["Lotus"] = "Lotus", ["BoxingGloves"] = "Boxing Gloves", ["StardustPickup"] = "Stardust", ["PaperPlane"] = "Paper Plane", ["FihFlakes"] = "Fih Food", ["Leftovers"] = "Lunchbox", ["Pizza"] = "Pizza Slice", ["WaterCup"] = "Water Cup", ["HoneyPot"] = "Honeypot", ["Briefcase"] = "Briefcase"}
 local misc = {["MouseHole"] = {"Louie"}, ["Toolshed_Small"] = {"Shears Toolshed"}, ["ChestBox"] = {"Chest"}, ["Toolbox"] = {"Toolbox"}, ["TrickOrTreatHouse"] = {"Trick Or Treat", "HouseDoor"}}
 local misc2 = {["ChestBoxLocked"] = "Locked Chest", ["Chest_Vine"] = "Vine Chest", ["Toolbox_Locked"] = "Locked Toolbox"}
 local safe = {["Wardrobe"] = "Wardrobe", ["Toolshed"] = "Toolshed", ["Locker_Large"] = "Locker", ["CircularVent"] = "Vent", ["Dumpster"] = "Dumpster", ["Bed"] = "Bed", ["Double_Bed"] = "Double Bed", ["Wardrobe-FOOLS26"] = "Rush Wardrobe", ["Backdoor_Wardrobe"] = "Wardrobe", ["Rooms_Locker"] = "Locker", ["Rooms_Locker_Fridge"] = "Fridge Locker"}
 local roomEntities = {["MonumentEntity"] = {"Monument", "Top"}, ["FigureRig"] = {"Figure", false, Floor == "Fools26"}, ["LiveEntityBramble"] = {"Bramble"}, ["Grumbo"] = {"Grumble", "GrumbleRig"}}
-local objc = {["KeyObtain"] = {"Key", false}, ["ElectricalKeyObtain"] = {"Electrical Key"}, ["LeverForGate"] = {"Gate Lever", "Main"}, ["LiveHintBook"] = {"Hint Book"}, ["LiveBreakerPolePickup"] = {"Breaker Pole"}, ["FuseModel"] = {"Fuse"}, ["MinesGateButton"] = {"Gate Button"}, ["GardenGateButton"] = {"Gate Button"}, ["MinesGenerator"] = {"Generator"}, ["LibraryHintPaper"] = {"Hint Paper"}, ["TimerLever"] = {"Lever"}, ["CringlePresent"] = {"Present Box", "ToolProp"}}
+local objc = {["KeyObtain"] = {"Key"}, ["ElectricalKeyObtain"] = {"Electrical Key"}, ["LeverForGate"] = {"Gate Lever", "Main"}, ["LiveHintBook"] = {"Hint Book"}, ["LiveBreakerPolePickup"] = {"Breaker Pole"}, ["FuseModel"] = {"Fuse"}, ["MinesGateButton"] = {"Gate Button"}, ["GardenGateButton"] = {"Gate Button"}, ["MinesGenerator"] = {"Generator"}, ["LibraryHintPaper"] = {"Hint Paper"}, ["TimerLever"] = {"Lever"}, ["CringlePresent"] = {"Present Box", "ToolProp"}}
 
 local noHitbox = {["Snare"] = true, ["GiggleCeiling"] = true}
 
@@ -228,22 +228,16 @@ local lastC = false local lastCPart = false local lastCrP = false local lastRP =
 RUNSERV.RenderStepped:Connect(function()
   local char = plr.Character if not char then return end
   crouch:FireServer() local hum = char:FindFirstChildOfClass("Humanoid")
-  if not hum then return end
-  hum.WalkSpeed = wspeed + getSpeed(char, hum)
-  if not lastRP then return end
-  local rpp = lastRP.Position
+  if not hum then return end hum.WalkSpeed = wspeed + getSpeed(char, hum)
+  if not lastRP then return end local rpp = lastRP.Position
   if lastC then lastC.Position = rpp + Vector3.new(0, 2.328, 0) end if lastCPart then lastCPart.Position = rpp + Vector3.new(0, 2.328, 0) end if lastCrP then lastCrP.Position = rpp + Vector3.new(0, 1.328, 0) end
   local pos = char:GetPivot().Position
-  for pr, ps in pairs(prompts) do
-    if (pos-ps).Magnitude > 15 then continue end
-    fireproximityprompt(pr)
-  end
+  for pr, ps in pairs(prompts) do if (pos-ps).Magnitude > 15 then continue end fireproximityprompt(pr) end
   if ndr and 75 > (ndp-pos).Magnitude and tick() - ndt > 0.1 then ndr:FireServer() ndt = tick() end
 end)
 
 local function spoofpos(char)
-  local rootPart = char:WaitForChild("HumanoidRootPart") 
-  lastRP = rootPart
+  local rootPart = char:WaitForChild("HumanoidRootPart") lastRP = rootPart
   local collision = char:WaitForChild("Collision")
   rootPart.CFrame *= CFrame.new(0, -2.346, 0)
   char:WaitForChild("Humanoid").HipHeight = 0.05
