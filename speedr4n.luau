@@ -282,8 +282,7 @@ local function wsEnt(c)
   if true ~= bPart then return end esp(c, eData[1], Color3.new(1, 0, 0), true)
 end
 --fullbright
-LS.Ambient = Color3.new(1, 1, 1)
-LS:GetPropertyChangedSignal("Ambient"):Connect(function() if LS.Ambient == Color3.new(1, 1, 1) then return end LS.Ambient = Color3.new(1, 1, 1) end)
+if Floor == "Hotel" then LS.Ambient = Color3.new(1, 1, 1) LS:GetPropertyChangedSignal("Ambient"):Connect(function() if LS.Ambient == Color3.new(1, 1, 1) then return end LS.Ambient = Color3.new(1, 1, 1) end) end
 
 for _, c in pairs(workspace:GetChildren()) do wsEnt(c) end
 workspace.ChildAdded:Connect(wsEnt)
