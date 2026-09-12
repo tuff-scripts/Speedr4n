@@ -6,10 +6,9 @@ local SGUI = game:GetService("StarterGui")
 local PRS = game:GetService("ProximityPromptService")
 local LS = game:GetService("Lighting")
 
-local wspeed = 50
+local wspeed = 55
 local plr = PLRS.LocalPlayer
 local plrGui = plr.PlayerGui
-plrGui:WaitForChild("MainUI"):WaitForChild("Initiator"):WaitForChild("Main_Game"):WaitForChild("PromptService"):WaitForChild("PromptGate")
 
 local gameData = RS.GameData
 local gameStats = RS.GameStats
@@ -22,14 +21,24 @@ local isArchives = "Archives" == Floor
 local doorOffset = 1 local doorName = "Door "
 if Floor == "Mines" then doorOffset = 101 elseif Floor == "Backdoor" then doorOffset = -50 elseif fRep:FindFirstChild("KrampusIntro") then doorOffset = 50 elseif Floor == "Stairwell" then doorName = "Landing " end
 
+--NOISE IS PARENTED TO CAMERA; «NoiseModel»
 local remotes = false local mods = RS.LiveModifiers or RS
 if RS:FindFirstChild("RemotesFolder") then remotes = RS.RemotesFolder elseif RS:FindFirstChild("EntityInfo") then remotes = RS.EntityInfo elseif RS:FindFirstChild("Bricks") then remotes = RS.Bricks if Floor == "Hotel" then Floor = "OldHotel" end end
 
-local climbLadder = remotes.ClimbLadder local crouch = remotes.Crouch local cutscene = remotes.Cutscene local useEnemyModule = remotes.UseEnemyModule local motor = remotes.MotorReplication
-local EBF = remotes.EBF
-local padlockCode = remotes.PL
+local climbLadder = remotes.ClimbLadder local crouch = remotes.Crouch local cutscene = remotes.Cutscene local useEnemyModule = remotes.UseEnemyModule local motor = remotes.MotorReplication local drop = remotes.DropItem
+local EBF = remotes.EBF local padlockCode = remotes.PL
 local minigame = remotes.EngageMinigame
-local drop = remotes.DropItem
+
+minigame.OnClientEvent:Connect(function(m, o)
+  if m == "ElevatorBreaker" then
+    EBF:FireServer()
+  elseif m == "MinesAnchor" and o then
+    local putCode = o:FindFirstChild("AnchorRemote") if not putCode then return end
+    local tui = plrGui:FindFirstChild("MainUI") if not tui then return end
+    local hf = tui:FindFirstChild("AnchorHintFrame") if not hf then return end
+    local cl = hf:FindFirstChild("Code") if cl then putCode:InvokeServer(cl.Text) end
+  end
+end)
 
 local cRooms = workspace.CurrentRooms
 local liveEnt = workspace.LiveEntities
@@ -50,15 +59,16 @@ local function hash()
 end
 local espD = {} local espHums = {}
 local function esp(p, n, c, t)
+  warn(p)
   local hl = new("Highlight", p, {Name = hash(), FillTransparency = 0.75, FillColor = c, OutlineColor = c})
   local bb = new("BillboardGui", p, {Name = hash(), AlwaysOnTop = true, LightInfluence = 0, Size = UDim2.fromOffset(1000, 100)})
   new("TextLabel", bb, {Name = hash(), Size = UDim2.fromScale(1, 1), BorderSizePixel = 0, BackgroundTransparency = 1, TextColor3 = c, Text = n, TextSize = 17, RichText = true, TextStrokeTransparency = 0})
-  if t and not espHums[p] then local pr = p.PrimaryPart if pr then pr.Transparency = 0.999 pr.Material = Enum.Material.Plastic espHums[p] = new("Humanoid", p, {Name = hash(), MaxHealth = math.huge, Health = math.huge}) end end
   espD[p] = {hl, bb} p.Destroying:Once(function() espHums[p] = nil espD[p] = nil end)
+  if t and not espHums[p] then local pr = p.PrimaryPart if pr then pr.Transparency = 0.9999 pr.Material = Enum.Material.Plastic espHums[p] = new("Humanoid", p, {Name = hash(), MaxHealth = math.huge, Health = math.huge}) end end
 end
 local function unesp(p)
   local d = espD[p] if not d then return end
-  local hl = d[1] local bb = d[2] if hl then hl:Destroy() end if bb then bb:Destroy() end espD[p] = nil end
+  local hl = d[1] local bb = d[2] warn(1) if hl then warn(hl:GetFullName()) hl:Destroy() warn(hl:GetFullName()) end if bb then bb:Destroy() end espD[p] = nil end
 local function rr(r) local f = Instance.new(r.ClassName) f.Name = r.Name f.Parent = r.Parent r.Parent = nil return f end
 local prompts = {} local fakePrompts = {} local hasFake = {}
 local function addPrompt(p, pos) if prompts[p] or not (p and pos) then return end prompts[p] = pos p.Destroying:Once(function() prompts[p] = nil end) return p end
@@ -76,7 +86,6 @@ PRS.PromptTriggered:Connect(function(pr, p) if p ~= plr then return end
   lastDropConn = dropsFold.ChildAdded:Once(function(nitem) fireproximityprompt(nitem:WaitForChild("ModulePrompt")) fireproximityprompt(r) end)
   drop:FireServer(item)
 end)
-minigame.OnClientEvent:Connect(function(m) if m == "ElevatorBreaker" then EBF:FireServer() end end)
 
 local function getSpeed(char, hum)
   local cPart = char:FindFirstChild("CollisionPart") or char:FindFirstChild("Collision")
@@ -133,20 +142,18 @@ mt.__namecall = newcclosure(function(self, ...)
       else
         return oNC(self, -650)
       end
+    else
+      local n = self.Name if "ClutchHeartbeat" == n or "HideMonster" == n then return end
     end
   end
   return oNC(self, ...)
 end) setreadonly(mt, true) crouch:FireServer() motor:FireServer()
-
+  
 local function addLadderConn(char)
-  if climbingConn then climbingConn:Disconnect() climbingConn = false end
-  if not char then return end
+  if climbingConn then climbingConn:Disconnect() climbingConn = false end if not char then return end
   climbingConn = char:GetAttributeChangedSignal("Climbing"):Connect(function()
-    if char:GetAttribute("Climbing") and not anticheatDisabled then 
-      task.wait(0.25) 
-      char:SetAttribute("Climbing", false) 
-      applyBypass()
-    end
+    if anticheatDisabled or not char:GetAttribute("Climbing") then return end
+    task.wait(0.25) char:SetAttribute("Climbing", false) applyBypass()
   end)
 end
 
@@ -166,13 +173,14 @@ local ndp = false local ndr = false local ndt = 0
 local unlockPrompts = {["UnlockPrompt"] = true, ["SkullPrompt"] = true, ["LockPrompt"] = true, ["ThingToEnable"] = true, ["FusesPrompt"] = true, ["ManualOpenPrompt"] = true, ["FusesPrompt"] = true}
 local lockers = {["Toolbox_Locked"] = true, ["ChestBoxLocked"] = true, ["Chest_Vine"] = true, ["CuttableVines"] = true, ["Locker_Small_Locked"] = true}
 local items = {["Lighter"] = "Lighter", ["Flashlight"] = "Flashlight", ["Lockpick"] = "Lockpicks", ["Vitamins"] = "Vitamins", ["Bandage"] = "Bandage", ["Battery"] = "Battery", ["StarVial"] = "Starlight Vial", ["StarBottle"] = "Bottle of Starlight", ["StarJug"] = "Starlight Jug", ["Shakelight"] = "Shake-light", ["Straplight"] = "Strap-light", ["Bulklight"] = "Bulk-light", ["Candle"] = "Candle", ["Crucifix"] = "Crucifix", ["CrucifixWall"] = "Crucifix", ["Glowsticks"] = "Glowstick", ["SkeletonKey"] = "Skeleton Key", ["Candy"] = "Candy", ["ShieldMini"] = "Mini Shield Potion", ["ShieldBig"] = "Big Shield Potion", ["BandagePack"] = "Bandage Pack", ["BatteryPack"] = "Battery Pack", ["Smoothie"] = "Smoothie", ["RiftCandle"] = "Moonlight Candle", ["LaserPointer"] = "Laser Pointer", ["HolyGrenade"] = "Holy Hand Grenade", ["Shears"] = "Shears", ["Cheese"] = "Cheese", ["Bread"] = "Slice of Bread", ["AlarmClock"] = "Alarm Clock", ["RiftSmoothie"] = "Moonlight Float", ["GweenSoda"] = "Gween Soda", ["GlitchCube"] = "Glitch Fragment", ["Scanner"] = "NVCS-3000", ["Bomb"] = "Bomb", ["Knockbomb"] = "Knockbomb", ["Nanner"] = "Banana", ["BigBomb"] = "Big Bomb", ["ShakeBox"] = "Cardboard Box", ["GoldGun"] = "Gold Blaster", ["StopSign"] = "Rans0m Sign", ["TipJar"] = "Tip Jar", ["Lantern"] = "Lantern", ["IronKey"] = "Crypt Key", ["KeyIron"] = "Crypt Key", ["IronKeyForCrypt"] = "Crypt Key", ["LotusPetal"] = "Lotus Petal", ["LotusHolder"] = "Lotus Petal", ["Compass"] = "Compass", ["LotusPetalPickup"] = "Lotus Petal", ["LanternLitItem"] = "Lantern", ["Multitool"] = "Multitool", ["RiftJar"] = "Rift Jar", ["AloeVera"] = "Aloe Vera", ["Donut"] = "D'oh nut", ["Lotus"] = "Lotus", ["BoxingGloves"] = "Boxing Gloves", ["StardustPickup"] = "Stardust", ["PaperPlane"] = "Paper Plane", ["FihFlakes"] = "Fih Food", ["Leftovers"] = "Lunchbox", ["Pizza"] = "Pizza Slice", ["WaterCup"] = "Water Cup", ["HoneyPot"] = "Honeypot", ["Briefcase"] = "Briefcase"}
-local misc = {["MouseHole"] = {"Louie"}, ["Toolshed_Small"] = {"Shears Toolshed"}, ["ChestBox"] = {"Chest"}, ["Toolbox"] = {"Toolbox"}, ["TrickOrTreatHouse"] = {"Trick Or Treat", "HouseDoor"}}
-local misc2 = {["ChestBoxLocked"] = "Locked Chest", ["Chest_Vine"] = "Vine Chest", ["Toolbox_Locked"] = "Locked Toolbox"}
-local safe = {["Wardrobe"] = "Wardrobe", ["Toolshed"] = "Toolshed", ["Locker_Large"] = "Locker", ["CircularVent"] = "Vent", ["Dumpster"] = "Dumpster", ["Bed"] = "Bed", ["Double_Bed"] = "Double Bed", ["Wardrobe-FOOLS26"] = "Rush Wardrobe", ["Backdoor_Wardrobe"] = "Wardrobe", ["Rooms_Locker"] = "Locker", ["Rooms_Locker_Fridge"] = "Fridge Locker"}
-local roomEntities = {["MonumentEntity"] = {"Monument", "Top"}, ["FigureRig"] = {"Figure", false, Floor == "Fools26"}, ["LiveEntityBramble"] = {"Bramble"}, ["Grumbo"] = {"Grumble", "GrumbleRig"}}
-local objc = {["KeyObtain"] = {"Key"}, ["ElectricalKeyObtain"] = {"Electrical Key"}, ["LeverForGate"] = {"Gate Lever", "Main"}, ["LiveHintBook"] = {"Hint Book"}, ["LiveBreakerPolePickup"] = {"Breaker Pole"}, ["FuseModel"] = {"Fuse"}, ["MinesGateButton"] = {"Gate Button"}, ["GardenGateButton"] = {"Gate Button"}, ["MinesGenerator"] = {"Generator"}, ["LibraryHintPaper"] = {"Hint Paper"}, ["TimerLever"] = {"Lever"}, ["CringlePresent"] = {"Present Box", "ToolProp"}}
+local misc = {["MouseHole"] = {"Louie"}, ["Toolshed_Small"] = {"Toolshed"}, ["ChestBox"] = {"Chest"}, ["Toolbox"] = {"Toolbox"}, ["TrickOrTreatHouse"] = {"Trick Or Treat", "HouseDoor"}}
+local misc2 = {["ChestBoxLocked"] = "Chest", ["Chest_Vine"] = "Vine Chest", ["Toolbox_Locked"] = "Toolbox"}
+local safe = {["Wardrobe"] = {"Wardrobe"}, ["Toolshed"] = {"Toolshed"}, ["Locker_Large"] = {"Locker"}, ["CircularVent"] = {"Vent", "Grate"}, ["Dumpster"] = {"Dumpster"}, ["Bed"] = {"Bed"}, ["Double_Bed"] = {"Double Bed"}, ["Wardrobe-FOOLS26"] = {"Rush Wardrobe"}, ["Backdoor_Wardrobe"] = {"Wardrobe"}, ["Rooms_Locker"] = {"Locker"}, ["Rooms_Locker_Fridge"] = {"Fridge"}}
+local roomEntities = {["MonumentEntity"] = {"Monument", "Top"}, ["FigureRig"] = {"Figure", false, Floor == "Fools26"}, ["LiveEntityBramble"] = {"Bramble"}, ["Grumbo"] = {"Grumble", "GrumbleRig"}, ["SideroomDupe"] = {"Dupe", "DoorFake"}, ["MandrakeLive"] = {"Mandrake"}, ["Groundskeeper"] = {"Groundskeeper", false, false, {"BrambleCutscene", "OutdoorsEnding"}}, ["TV_Stand"] = {"TV"}}
+local objc = {["KeyObtain"] = {"Key"}, ["ElectricalKeyObtain"] = {"Electrical Key"}, ["LeverForGate"] = {"Gate Lever", "Main"}, ["LiveHintBook"] = {"Hint Book"}, ["LiveBreakerPolePickup"] = {"Breaker Pole"}, ["FuseObtain"] = {"Fuse"}, ["MinesGateButton"] = {"Gate Button"}, ["GardenGateButton"] = {"Gate Button"}, ["MinesGenerator"] = {"Generator"}, ["LibraryHintPaper"] = {"Hint Paper"},
+  ["TimerLever"] = {"Lever"}, ["CringlePresent"] = {"Present Box", "ToolProp"}, ["TrackLever"] = {"Track Lever"}, ["MinecartMoving"] = {"Minecart"}, ["VineGuillotine"] = {"Guillotine"}, ["WaterPump"] = {"Water Pump"}, ["MinesAnchor"] = {"Anchor"}, ["StairwellChunkMapBoard"] = {"Map"}, ["StairwellFireAlarm"] = {"Fire Alarm"}}
 
-local noHitbox = {["Snare"] = true, ["GiggleCeiling"] = true}
+local noHitbox = {["Snare"] = "Hitbox", ["GiggleCeiling"] = "Hitbox", ["GloomEgg"] = "Egg"}
 
 local infE = false
 local function updInfE(c)
@@ -181,11 +189,12 @@ local function updInfE(c)
 end
 local function passPromptObj(c)
   if prompts[c] or not c.Parent then return end local n = c.Name
-  if noHitbox[n] then local h = c:FindFirstChild("Hitbox") if h then h:Destroy() end end
+  local nH = noHitbox[n] if nH then local h = c:FindFirstChild(nH) if h then h.CanTouch = false end end
   if n == "GoldPile" then addPrompt(c:FindFirstChild("LootPrompt"), c:GetPivot().Position)
   elseif n == "TimerLever" then local tl = c.TakeTimer.TextLabel if tl.Text == "00:00" then return end local p = addPrompt(c.ActivateEventPrompt, c:GetPivot().Position) tl:GetPropertyChangedSignal("Text"):Once(function() prompts[p] = nil end)
   elseif n == "LeverForGate" then local un = c:WaitForChild("Main").ToUnanchor if not un.Anchored then return end local p = addPrompt(c.ActivateEventPrompt, c:GetPivot().Position) un:GetPropertyChangedSignal("Anchored"):Once(function() prompts[p] = nil end)
   elseif n == "LiveHintBook" or n == "LiveBreakerPolePickup" then addPrompt(c:FindFirstChild("ActivateEventPrompt"), c:GetPivot().Position)
+  elseif n == "Mandrake" then if c.Parent.Name ~= "MandrakeLive" then return end addPrompt(c:FindFirstChild("ModulePrompt"), c:GetPivot().Position)
   elseif n == "VentGrate" then local pr = c.AwesomePrompt if not pr.Enabled then return end local p = addPrompt(pr, c:GetPivot().Position) pr:GetPropertyChangedSignal("Enabled"):Once(function() prompts[p] = nil end)
   elseif c:IsA("ProximityPrompt") then if fakePrompts[c] or hasFake[c] or not (unlockPrompts[n] or lockers[c.Parent.Name]) then return end local f = c:Clone() fakePrompts[f] = {c, c.Parent} hasFake[c] = true if infE then f.Parent = c.Parent c.Parent = script end c.Destroying:Connect(function() fakePrompts[f] = nil hasFake[c] = nil f:Destroy() end) if not c.Enabled then c:GetPropertyChangedSignal("Enabled"):Once(function() f.Enabled = true end) end end
 end
@@ -212,12 +221,12 @@ local function updCR()
   local function pass1(c)
     if not c or lastEsp[c] then return end
     local n = c.Name if n == "ArchivesPackageDeposit" then local id = c:WaitForChild("Screen"):WaitForChild("Text"):WaitForChild("Label").Text if deposits[id] then return end totalDeposits += 1 local col = totalDeposits == 1 and Color3.new(1, 0, 1) or Color3.fromRGB(150, 100, 255) deposits[id] = col esp(c, "Deposit "..id, col) lastEsp[c] = true local box = boxes[id] if box then esp(box, "Box "..id, col) lastEsp[box] = true end elseif n == "ArchivesStorageBox" then local id = c:WaitForChild("Handle"):WaitForChild("Label"):WaitForChild("Text"):WaitForChild("Label").Text if not boxes[id] then boxes[id] = c local dep = deposits[id] if dep then esp(c, "Box "..id, dep) end end end
-    local safeName = safe[n] if safeName then esp(c, safeName, Color3.new(0, 1, 0)) lastEsp[c] = true return end
+    local safeD = safe[n] if safeD then local h = safeD[2] local t = c if h then t = t:FindFirstChild(h) end if t and not lastEsp[t] then esp(t, safeD[1], Color3.new(0, 1, 0)) lastEsp[t] = true end return end
     local eD = roomEntities[n] if eD then local exclude = eD[4] if exclude and table.find(exclude, c.Parent.Name) then return end local h = eD[2] local t = c if h then t = t:FindFirstChild(h) end if t and not lastEsp[t] then esp(t, eD[1], Color3.new(1, 0, 0), eD[3]) lastEsp[t] = true end return end
-    if c:FindFirstChild("PickedUpEvent") then local itemName = items[n] if itemName then esp(c, itemName, Color3.new(1, 1, 1)) lastEsp[c] = true return end end
+    if c:FindFirstChild("PickedUpEvent") then local itemName = items[n] if itemName then if c:GetAttribute("ItemPicked") then return end lastEsp[c] = true esp(c, itemName, Color3.new(1, 1, 1)) c:GetAttributeChangedSignal("ItemPicked"):Once(function() unesp(c) end) return end end
     local miscD = misc[n] if miscD then local h = miscD[2] local t = c if h then t = t:FindFirstChild(h) end if t and not lastEsp[t] then esp(t, miscD[1], Color3.new(1, 0.1, 1)) lastEsp[t] = true end return end
     local misc2Name = misc2[n] if misc2Name then esp(c, misc2Name, Color3.fromRGB(130, 0, 130)) lastEsp[c] = true return end
-    local obData = objc[n] if obData then local h = obData[2] local t = c if h then t = c:FindFirstChild(h) end if t and not lastEsp[t] then esp(t, obData[1], Color3.fromRGB(0, 200, 255)) lastEsp[t] = true return end end
+    local obData = objc[n] if obData then local h = obData[2] local t = c if h then t = c:FindFirstChild(h) end if t and not lastEsp[t] then if n == "FuseObtain" then if c:GetAttribute("ItemPicked") then return end lastEsp[t] = true esp(t, obData[1], Color3.fromRGB(0, 200, 255)) c:GetAttributeChangedSignal("ItemPicked"):Once(function() unesp(t) end) return end lastEsp[t] = true esp(t, obData[1], Color3.fromRGB(0, 200, 255)) return end end
   end
   for _, c in pairs(room:GetDescendants()) do pass1(c) end lDC = room.DescendantAdded:Connect(pass1)
 end updCR() plr:GetAttributeChangedSignal("CurrentRoom"):Connect(updCR)
@@ -232,7 +241,7 @@ RUNSERV.RenderStepped:Connect(function()
   if not lastRP then return end local rpp = lastRP.Position
   if lastC then lastC.Position = rpp + Vector3.new(0, 2.328, 0) end if lastCPart then lastCPart.Position = rpp + Vector3.new(0, 2.328, 0) end if lastCrP then lastCrP.Position = rpp + Vector3.new(0, 1.328, 0) end
   local pos = char:GetPivot().Position
-  for pr, ps in pairs(prompts) do if (pos-ps).Magnitude > 15 then continue end fireproximityprompt(pr) end
+  for pr, ps in pairs(prompts) do if not (pr and pr.Enabled) or (pos-ps).Magnitude > 15 then continue end fireproximityprompt(pr) end
   if ndr and 75 > (ndp-pos).Magnitude and tick() - ndt > 0.1 then ndr:FireServer() ndt = tick() end
 end)
 
@@ -273,8 +282,8 @@ local function wsEnt(c)
   if true ~= bPart then return end esp(c, eData[1], Color3.new(1, 0, 0), true)
 end
 --fullbright
---LS.Ambient = Color3.new(1, 1, 1)
---LS:GetPropertyChangedSignal("Ambient"):Connect(function() if LS.Ambient == Color3.new(1, 1, 1) then return end LS.Ambient = Color3.new(1, 1, 1) end)
+LS.Ambient = Color3.new(1, 1, 1)
+LS:GetPropertyChangedSignal("Ambient"):Connect(function() if LS.Ambient == Color3.new(1, 1, 1) then return end LS.Ambient = Color3.new(1, 1, 1) end)
 
 for _, c in pairs(workspace:GetChildren()) do wsEnt(c) end
 workspace.ChildAdded:Connect(wsEnt)
