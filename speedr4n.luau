@@ -28,6 +28,7 @@ if RS:FindFirstChild("RemotesFolder") then remotes = RS.RemotesFolder elseif RS:
 local climbLadder = remotes.ClimbLadder local crouch = remotes.Crouch local cutscene = remotes.Cutscene local useEnemyModule = remotes.UseEnemyModule local motor = remotes.MotorReplication local drop = remotes.DropItem
 local EBF = remotes.EBF local padlockCode = remotes.PL
 local minigame = remotes.EngageMinigame
+local caption = remotes.Caption
 
 minigame.OnClientEvent:Connect(function(m, o)
   if m == "ElevatorBreaker" then
@@ -189,9 +190,17 @@ local objc = {["KeyObtain"] = {"Key"}, ["ElectricalKeyObtain"] = {"Electrical Ke
 
 local noHitbox = {["Snare"] = "Hitbox", ["GiggleCeiling"] = "Hitbox", ["GloomEgg"] = "Egg"}
 
-local infE = false
+local infE = false local cRen = {} local cRep = {}
 local function updInfE(c)
-  local tool = c:FindFirstChildOfClass("Tool") if not (tool and infSupported[tool.Name]) then infE = false for f, d in fakePrompts do if not f then continue end local c = d[1] if not c then continue end f.Parent = script c.Parent = d[2] end return end
+  local tool = c:FindFirstChildOfClass("Tool")
+  local tn = tool and tool.Name if tn == "Crucifix" then
+    for c, d in pairs(cRen) do c.Name = d[1] end
+    for c, d in pairs(cRep) do c.Parent = d[1] d[2].Parent = nil end
+   else
+    for c, d in pairs(cRen) do c.Name = d[2] end
+    for c, d in pairs(cRep) do d[2].Parent = d[1] c.Parent = nil end
+  end
+  if not infSupported[tn] then infE = false for f, d in fakePrompts do if not f then continue end local c = d[1] if not c then continue end f.Parent = script c.Parent = d[2] end return end
   infE = true for f, d in fakePrompts do if not f then continue end local c = d[1] if not c then continue end f.Parent = d[2] c.Parent = script end
 end
 local function passPromptObj(c)
@@ -263,10 +272,18 @@ local function spoofpos(char)
   char:WaitForChild("LowerTorso"):WaitForChild("Root").C1 *= CFrame.new(0, -2.346, 0)
   rootPart.CanCollide = false
 end
+local entModules = RS.ModulesClient.EntityModules
+local entRep = {["Shade"] = {"NoShade", entModules}}
+for n, d in pairs(entRep) do
+  local n2 = d[1] local p = d[2] local r = p:FindFirstChild(n) or p:FindFirstChild(n2)
+  if not r then continue end cRen[r] = {n, n2}
+end
 
-local shade = RS.ModulesClient.EntityModules:FindFirstChild("Shade") if shade then shade.Name = "NoShade" end
 local nodmgrem = {"Screech", "A90", "SurgeRemote", "ShadeResult"}
-for _, r in nodmgrem do local f = remotes:FindFirstChild(r) if f then rr(f) end end
+for _, r in nodmgrem do
+  local f = remotes:FindFirstChild(r)
+  if f then cRep[f] = {f.Parent, rr(f)} end 
+end
 
 local entities = {["Eyes"] = {"Eyes", true}, ["BashMoving"] = {"Bash", true}, ["RushMoving"] = {"Rush", true}, ["BackdoorRush"] = {"Blitz", true}, ["AmbushMoving"] = {"Ambush", true},
   ["FrozenAmbush"] = {"Ambush", true}, ["Scribbles"] = {"Scribbles", true}, ["LiveMonument"] = {"Monument", "Top"}, ["GlitchRush"] = {"Glitched Rush", true}, ["GlitchAmbush"] = {"Glitched Ambush", true}}
@@ -276,8 +293,8 @@ local function bypassChar(char)
   godmode = false
   local hum = char:WaitForChild("Humanoid") applyBypass() addLadderConn(char)
   applyNoAcceleration(char) updInfE(char)
-  char.ChildAdded:Connect(function(c) if not (c:IsA("Tool") and infSupported[c.Name]) then return end updInfE(char) end)
-  char.ChildRemoved:Connect(function(c) if not (c:IsA("Tool") and infSupported[c.Name]) then return end updInfE(char) end)
+  char.ChildAdded:Connect(function(c) if not c:IsA("Tool") then return end updInfE(char) end)
+  char.ChildRemoved:Connect(function(c) if not c:IsA("Tool") then return end updInfE(char) end)
   spoofpos(char)
 end
 
@@ -297,4 +314,5 @@ workspace.ChildAdded:Connect(wsEnt)
 bypassChar(plr.Character or plr.CharacterAdded:Wait()) 
 plr.CharacterAdded:Connect(bypassChar)
 
+firesignal(caption.OnClientEvent, "Speedr4n V1", "thought")
 notify("speedr4n", "speedrun mode: on")
