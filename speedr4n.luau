@@ -203,7 +203,7 @@ local function passPromptObj(c)
   elseif n == "LiveHintBook" or n == "LiveBreakerPolePickup" then addPrompt(c:FindFirstChild("ActivateEventPrompt"), c:GetPivot().Position)
   elseif n == "Mandrake" then if c.Parent.Name ~= "MandrakeLive" then return end addPrompt(c:FindFirstChild("ModulePrompt"), c:GetPivot().Position)
   elseif n == "VentGrate" then local pr = c.AwesomePrompt if not pr.Enabled then return end local p = addPrompt(pr, c:GetPivot().Position) pr:GetPropertyChangedSignal("Enabled"):Once(function() prompts[p] = nil end)
-  elseif c:IsA("ProximityPrompt") then if fakePrompts[c] or hasFake[c] or not (unlockPrompts[n] or lockers[c.Parent.Name]) then return end c.RequiresLineOfSight  local f = c:Clone() fakePrompts[f] = {c, c.Parent} hasFake[c] = true if infE then f.Parent = c.Parent c.Parent = script end c.Destroying:Connect(function() fakePrompts[f] = nil hasFake[c] = nil f:Destroy() end) if not c.Enabled then c:GetPropertyChangedSignal("Enabled"):Once(function() f.Enabled = true end) end end
+  elseif c:IsA("ProximityPrompt") then if fakePrompts[c] or hasFake[c] or not (unlockPrompts[n] or lockers[c.Parent.Name]) then c.RequiresLineOfSight = false return end c.RequiresLineOfSight = false local f = c:Clone() fakePrompts[f] = {c, c.Parent} hasFake[c] = true if infE then f.Parent = c.Parent c.Parent = script end c.Destroying:Connect(function() fakePrompts[f] = nil hasFake[c] = nil f:Destroy() end) if not c.Enabled then c:GetPropertyChangedSignal("Enabled"):Once(function() f.Enabled = true end) end end
 end
 local function passRoom(room)
   local td = room:WaitForChild("Door")
@@ -236,7 +236,7 @@ local function updCR()
     local misc2Name = misc2[n] if misc2Name then esp(c, misc2Name, Color3.fromRGB(130, 0, 130)) lastEsp[c] = true return end
     local obData = objc[n] if obData then local h = obData[2] local t = c if h then t = c:FindFirstChild(h) end if t and not lastEsp[t] then if n == "FuseObtain" then if c:GetAttribute("ItemPicked") then return end lastEsp[t] = true esp(t, obData[1], Color3.fromRGB(0, 200, 255)) c:GetAttributeChangedSignal("ItemPicked"):Once(function() unesp(t) end) return end lastEsp[t] = true esp(t, obData[1], Color3.fromRGB(0, 200, 255)) return end end
   end for _, c in pairs(dropsFold:GetChildren()) do pass1(c) end
-  LDRC = dropsFold.ChildAdded:Connect(pass1)
+  lDRC = dropsFold.ChildAdded:Connect(pass1)
   for _, c in pairs(room:GetDescendants()) do pass1(c) end lDC = room.DescendantAdded:Connect(pass1)
 end updCR() plr:GetAttributeChangedSignal("CurrentRoom"):Connect(updCR)
 
@@ -269,7 +269,7 @@ local nodmgrem = {"Screech", "A90", "SurgeRemote", "ShadeResult"}
 for _, r in nodmgrem do local f = remotes:FindFirstChild(r) if f then rr(f) end end
 
 local entities = {["Eyes"] = {"Eyes", true}, ["BashMoving"] = {"Bash", true}, ["RushMoving"] = {"Rush", true}, ["BackdoorRush"] = {"Blitz", true}, ["AmbushMoving"] = {"Ambush", true},
-  ["FrozenAmbush"] = {"Ambush", true}, ["Scribbles"] = {"Scribbles", true}, ["LiveMonument"] = {"Monument", "Top"}, ["GitchRush"] = {"Glitched Rush", true}, ["GlitchAmbush"] = {"Glitched Ambush", true}}
+  ["FrozenAmbush"] = {"Ambush", true}, ["Scribbles"] = {"Scribbles", true}, ["LiveMonument"] = {"Monument", "Top"}, ["GlitchRush"] = {"Glitched Rush", true}, ["GlitchAmbush"] = {"Glitched Ambush", true}}
   
 local function bypassChar(char)
   if not char then return end wait()
