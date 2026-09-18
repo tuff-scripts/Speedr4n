@@ -58,8 +58,7 @@ local function hash()
   for i = 1, 16 do local idx = math.random(1, 62) hash[i] = chars:sub(idx, idx) end return table.concat(hash)
 end
 local espD = {} local espHums = {}
-local function esp(p, n, c, t)
-  warn(p)
+local function esp(p, n, c, t) if espD[p] then return end
   local hl = new("Highlight", p, {Name = hash(), FillTransparency = 0.75, FillColor = c, OutlineColor = c})
   local bb = new("BillboardGui", p, {Name = hash(), AlwaysOnTop = true, LightInfluence = 0, Size = UDim2.fromOffset(1000, 100)})
   new("TextLabel", bb, {Name = hash(), Size = UDim2.fromScale(1, 1), BorderSizePixel = 0, BackgroundTransparency = 1, TextColor3 = c, Text = n, TextSize = 17, RichText = true, TextStrokeTransparency = 0})
@@ -173,7 +172,7 @@ local ndp = false local ndr = false local ndt = 0
 local unlockPrompts = {["UnlockPrompt"] = true, ["SkullPrompt"] = true, ["LockPrompt"] = true, ["ThingToEnable"] = true, ["FusesPrompt"] = true, ["ManualOpenPrompt"] = true, ["FusesPrompt"] = true}
 local lockers = {["Toolbox_Locked"] = true, ["ChestBoxLocked"] = true, ["Chest_Vine"] = true, ["CuttableVines"] = true, ["Locker_Small_Locked"] = true}
 local items = {["Lighter"] = "Lighter", ["Flashlight"] = "Flashlight", ["Lockpick"] = "Lockpicks", ["Vitamins"] = "Vitamins", ["Bandage"] = "Bandage", ["Battery"] = "Battery", ["StarVial"] = "Starlight Vial", ["StarBottle"] = "Bottle of Starlight", ["StarJug"] = "Starlight Jug", ["Shakelight"] = "Shake-light", ["Straplight"] = "Strap-light", ["Bulklight"] = "Bulk-light", ["Candle"] = "Candle", ["Crucifix"] = "Crucifix", ["CrucifixWall"] = "Crucifix", ["Glowsticks"] = "Glowstick", ["SkeletonKey"] = "Skeleton Key", ["Candy"] = "Candy", ["ShieldMini"] = "Mini Shield Potion", ["ShieldBig"] = "Big Shield Potion", ["BandagePack"] = "Bandage Pack", ["BatteryPack"] = "Battery Pack", ["Smoothie"] = "Smoothie", ["RiftCandle"] = "Moonlight Candle", ["LaserPointer"] = "Laser Pointer", ["HolyGrenade"] = "Holy Hand Grenade", ["Shears"] = "Shears", ["Cheese"] = "Cheese", ["Bread"] = "Slice of Bread", ["AlarmClock"] = "Alarm Clock", ["RiftSmoothie"] = "Moonlight Float", ["GweenSoda"] = "Gween Soda", ["GlitchCube"] = "Glitch Fragment", ["Scanner"] = "NVCS-3000", ["Bomb"] = "Bomb", ["Knockbomb"] = "Knockbomb", ["Nanner"] = "Banana", ["BigBomb"] = "Big Bomb", ["ShakeBox"] = "Cardboard Box", ["GoldGun"] = "Gold Blaster", ["StopSign"] = "Rans0m Sign", ["TipJar"] = "Tip Jar", ["Lantern"] = "Lantern", ["IronKey"] = "Crypt Key", ["KeyIron"] = "Crypt Key", ["IronKeyForCrypt"] = "Crypt Key", ["LotusPetal"] = "Lotus Petal", ["LotusHolder"] = "Lotus Petal", ["Compass"] = "Compass", ["LotusPetalPickup"] = "Lotus Petal", ["LanternLitItem"] = "Lantern", ["Multitool"] = "Multitool", ["RiftJar"] = "Rift Jar", ["AloeVera"] = "Aloe Vera", ["Donut"] = "D'oh nut", ["Lotus"] = "Lotus", ["BoxingGloves"] = "Boxing Gloves", ["StardustPickup"] = "Stardust", ["PaperPlane"] = "Paper Plane", ["FihFlakes"] = "Fih Food", ["Leftovers"] = "Lunchbox", ["Pizza"] = "Pizza Slice", ["WaterCup"] = "Water Cup", ["HoneyPot"] = "Honeypot", ["Briefcase"] = "Briefcase"}
-local misc = {["MouseHole"] = {"Louie"}, ["Toolshed_Small"] = {"Toolshed"}, ["ChestBox"] = {"Chest"}, ["Toolbox"] = {"Toolbox"}, ["TrickOrTreatHouse"] = {"Trick Or Treat", "HouseDoor"}}
+local misc = {["MouseHole"] = {"Louie"}, ["Toolshed_Small"] = {"Toolshed"}, ["ChestBox"] = {"Chest"}, ["Toolbox"] = {"Toolbox"}, ["TrickOrTreatHouse"] = {"Trick Or Treat", "HouseDoor"}, ["TrickOrTreatDoor"] = {"Trick Or Treat"}}
 local misc2 = {["ChestBoxLocked"] = "Chest", ["Chest_Vine"] = "Vine Chest", ["Toolbox_Locked"] = "Toolbox"}
 local safe = {["Wardrobe"] = {"Wardrobe"}, ["Toolshed"] = {"Toolshed"}, ["Locker_Large"] = {"Locker"}, ["CircularVent"] = {"Vent", "Grate"}, ["Dumpster"] = {"Dumpster"}, ["Bed"] = {"Bed"}, ["Double_Bed"] = {"Double Bed"}, ["Wardrobe-FOOLS26"] = {"Rush Wardrobe"}, ["Backdoor_Wardrobe"] = {"Wardrobe"}, ["Rooms_Locker"] = {"Locker"}, ["Rooms_Locker_Fridge"] = {"Fridge"}}
 local roomEntities = {["MonumentEntity"] = {"Monument", "Top"}, ["FigureRig"] = {"Figure", false, Floor == "Fools26"}, ["LiveEntityBramble"] = {"Bramble"}, ["Grumbo"] = {"Grumble", "GrumbleRig"}, ["SideroomDupe"] = {"Dupe", "DoorFake"}, ["MandrakeLive"] = {"Mandrake"}, ["Groundskeeper"] = {"Groundskeeper", false, false, {"BrambleCutscene", "OutdoorsEnding"}}, ["TV_Stand"] = {"TV"}}
@@ -196,7 +195,7 @@ local function passPromptObj(c)
   elseif n == "LiveHintBook" or n == "LiveBreakerPolePickup" then addPrompt(c:FindFirstChild("ActivateEventPrompt"), c:GetPivot().Position)
   elseif n == "Mandrake" then if c.Parent.Name ~= "MandrakeLive" then return end addPrompt(c:FindFirstChild("ModulePrompt"), c:GetPivot().Position)
   elseif n == "VentGrate" then local pr = c.AwesomePrompt if not pr.Enabled then return end local p = addPrompt(pr, c:GetPivot().Position) pr:GetPropertyChangedSignal("Enabled"):Once(function() prompts[p] = nil end)
-  elseif c:IsA("ProximityPrompt") then if fakePrompts[c] or hasFake[c] or not (unlockPrompts[n] or lockers[c.Parent.Name]) then return end local f = c:Clone() fakePrompts[f] = {c, c.Parent} hasFake[c] = true if infE then f.Parent = c.Parent c.Parent = script end c.Destroying:Connect(function() fakePrompts[f] = nil hasFake[c] = nil f:Destroy() end) if not c.Enabled then c:GetPropertyChangedSignal("Enabled"):Once(function() f.Enabled = true end) end end
+  elseif c:IsA("ProximityPrompt") then if fakePrompts[c] or hasFake[c] or not (unlockPrompts[n] or lockers[c.Parent.Name]) then return end c.RequiresLineOfSight  local f = c:Clone() fakePrompts[f] = {c, c.Parent} hasFake[c] = true if infE then f.Parent = c.Parent c.Parent = script end c.Destroying:Connect(function() fakePrompts[f] = nil hasFake[c] = nil f:Destroy() end) if not c.Enabled then c:GetPropertyChangedSignal("Enabled"):Once(function() f.Enabled = true end) end end
 end
 local function passRoom(room)
   local td = room:WaitForChild("Door")
@@ -207,10 +206,11 @@ local function passRoom(room)
   room.DescendantAdded:Connect(passPromptObj)
 end
 roomVal.Changed:Connect(function() passRoom(cRooms[""..roomVal.Value]) end)
-local lDoor = false local lastEsp = {} local lDC = false
+local lDoor = false local lastEsp = {} local lDC = false local lDRC = false
 local function updCR()
   if lDoor then unesp(lDoor) lDoor = false end
   if lDC then lDC:Disconnect() lDC = false end
+  if lDRC then lDRC:Disconnect() lDRC = false end
   for obj in pairs(lastEsp) do unesp(obj) end table.clear(lastEsp)
   local room = cRooms:FindFirstChild(plr:GetAttribute("CurrentRoom")) if not room then return end
   local door = room:WaitForChild("Door") lDoor = door
@@ -227,7 +227,8 @@ local function updCR()
     local miscD = misc[n] if miscD then local h = miscD[2] local t = c if h then t = t:FindFirstChild(h) end if t and not lastEsp[t] then esp(t, miscD[1], Color3.new(1, 0.1, 1)) lastEsp[t] = true end return end
     local misc2Name = misc2[n] if misc2Name then esp(c, misc2Name, Color3.fromRGB(130, 0, 130)) lastEsp[c] = true return end
     local obData = objc[n] if obData then local h = obData[2] local t = c if h then t = c:FindFirstChild(h) end if t and not lastEsp[t] then if n == "FuseObtain" then if c:GetAttribute("ItemPicked") then return end lastEsp[t] = true esp(t, obData[1], Color3.fromRGB(0, 200, 255)) c:GetAttributeChangedSignal("ItemPicked"):Once(function() unesp(t) end) return end lastEsp[t] = true esp(t, obData[1], Color3.fromRGB(0, 200, 255)) return end end
-  end
+  end for _, c in pairs(dropsFold:GetChildren()) do pass1(c) end
+  LDRC = dropsFold.ChildAdded:Connect(pass1)
   for _, c in pairs(room:GetDescendants()) do pass1(c) end lDC = room.DescendantAdded:Connect(pass1)
 end updCR() plr:GetAttributeChangedSignal("CurrentRoom"):Connect(updCR)
 
@@ -260,7 +261,7 @@ local nodmgrem = {"Screech", "A90", "SurgeRemote", "ShadeResult"}
 for _, r in nodmgrem do local f = remotes:FindFirstChild(r) if f then rr(f) end end
 
 local entities = {["Eyes"] = {"Eyes", true}, ["BashMoving"] = {"Bash", true}, ["RushMoving"] = {"Rush", true}, ["BackdoorRush"] = {"Blitz", true}, ["AmbushMoving"] = {"Ambush", true},
-  ["FrozenAmbush"] = {"Ambush", true}, ["Scribbles"] = {"Scribbles", true}, ["LiveMonument"] = {"Monument", "Top"}}
+  ["FrozenAmbush"] = {"Ambush", true}, ["Scribbles"] = {"Scribbles", true}, ["LiveMonument"] = {"Monument", "Top"}, ["GitchRush"] = {"Glitched Rush", true}, ["GlitchAmbush"] = {"Glitched Ambush"}}
   
 local function bypassChar(char)
   if not char then return end wait()
@@ -281,8 +282,7 @@ local function wsEnt(c)
   if "string" == type(bPart) then local p = c:FindFirstChild(bPart) if p then esp(p, eData[1], Color3.new(1, 0, 0)) end return end
   if true ~= bPart then return end esp(c, eData[1], Color3.new(1, 0, 0), true)
 end
-
---if Floor == "Hotel" then LS.Ambient = Color3.new(1, 1, 1) LS:GetPropertyChangedSignal("Ambient"):Connect(function() if LS.Ambient == Color3.new(1, 1, 1) then return end LS.Ambient = Color3.new(1, 1, 1) end) end
+--fullbright LS.Ambient = Color3.new(1, 1, 1) LS:GetPropertyChangedSignal("Ambient"):Connect(function() if LS.Ambient == Color3.new(1, 1, 1) then return end LS.Ambient = Color3.new(1, 1, 1) end)
 
 for _, c in pairs(workspace:GetChildren()) do wsEnt(c) end
 workspace.ChildAdded:Connect(wsEnt)
